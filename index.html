@@ -1,5 +1,121 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Vacaciones y Ausencias - Madrid</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navegación Superior Clara -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+                        <i data-lucide="calendar-range" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-800 leading-tight">Control de Vacaciones</h1>
+                        <p class="text-xs text-slate-500">Madrid Capital • Equipo</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <button onclick="exportData()" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Exportar Backup</span>
+                    </button>
+                    <label class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg cursor-pointer flex items-center space-x-1.5 transition">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Importar Backup</span>
+                        <input type="file" id="importFile" onchange="importData(event)" class="hidden" accept=".json">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Métricas Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo Total</p>
+                    <p id="totalTeamCount" class="text-xl font-bold text-slate-800">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="sun" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Días Vacaciones Usados</p>
+                    <p id="totalVacationDays" class="text-xl font-bold text-slate-800">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
+                    <i data-lucide="stethoscope" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Bajas y Enfermedades</p>
+                    <p id="totalSickDays" class="text-xl font-bold text-slate-800">0 días</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Balance Horas Extra</p>
+                    <p id="totalExtraHours" class="text-xl font-bold text-slate-800">0 h</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secciones principales -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Columna Izquierda: Formulario + Saldos de Equipo -->
+            <div class="space-y-6">
+                
+                <!-- Registrar Solicitud/Ausencia -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Registrar Ausencia o Horas</span>
+                    </h2>
+                    
+                    <form id="absenceForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Empleado</label>
+                            <select id="employeeSelect" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                <!-- Cargado dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Ausencia / Registro</label>
+                            <select id="typeSelect" onchange="toggleFormFields()" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="vacation_summer">Vacaciones - Verano</option>
+                                <option value="vacation_christmas">Vacaciones - Navidad</option>
+                                <option value="vacation_easter">Vacaciones - Semanahtml lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
