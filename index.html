@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Vacaciones y Ausencias - Madrid</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navegación Superior Clara -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+                        <i data-lucide="calendar-range" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-800 leading-tight">Control de Vacaciones</h1>
+                        <p class="text-xs text-slate-500">Madrid Capital • Equipo</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <button onclick="exportData()" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg flex items-center space-x-1.5 transition">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Exportar Backup</span>
+                    </button>
+                    <label class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg cursor-pointer flex items-center space-x-1.5 transition">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Importar Backup</span>
+                        <input type="file" id="importFile" onchange="importData(event)" class="hidden" accept=".json">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Métricas Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo</p>
+                    <p id="totalTeamCount" class="text-xl font-bold text-slate-800">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="sun" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Días Vacaciones Usados</p>
+                    <p id="totalVacationDays" class="text-xl font-bold text-slate-800">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
+                    <i data-lucide="stethoscope" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Bajas y Enfermedades</p>
+                    <p id="totalSickDays" class="text-xl font-bold text-slate-800">0 días</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Balance Horas Extra</p>
+                    <p id="totalExtraHours" class="text-xl font-bold text-slate-800">0 h</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secciones principales en Pestañas/Bloques -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Columna Izquierda: Formulario de Registro + Equipo -->
+            <div class="space-y-6">
+                
+                <!-- Registrar Solicitud/Ausencia -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Registrar Ausencia o Horas</span>
+                    </h2>
+                    
+                    <form id="absenceForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Empleado</label>
+                            <select id="employeeSelect" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                <!-- Opciones cargadas dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Ausencia / Registro</label>
+                            <select id="typeSelect" onchange="toggleFormFields()" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="vacation_summer">Vacaciones - Verano</option>
+                                <option value="vacation_christmas">Vacaciones - Navidad</option>
+                                <option value="vacation_easter">Vacaciones - Semana Santa</option>
+                                <option value="vacation_other">Vacaciones - Asuntos Propios</option>
+                                <option value="sick_leave">Baja Médica / Enfermedad (Días)</option>
+                                <option value="medical_hours">Ausencia Médica (Horas)</option>
+                                <option value="extra_hours">Horas Extra Trabajadas</option>
+                                <option value="extra_days">Días Extra Trabajados</option>
+                            </select>
+                        </div>
+
+                        <div id="dateRangeFields" class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Desde</label>
+                                <input type="date" id="startDate" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Hasta</label>
+                                <input type="date" id="endDate" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                            </div>
+                        </div>
+
+                        <div id="hoursField" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Número de Horas</label>
+                            <input type="number" step="0.5" id="hoursCount" placeholder="Ej: 2.5" class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Observaciones / Motivo</label>
+                            <input type="text" id="notes" placeholder="Opcional..." class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+
+                        <button type="submit" class="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg shadow-sm transition">
+                            Guardar Registro
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de Miembros del Equipo -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="user-check" class="w-5 h-5 text-emerald-600"></i>
+                            <span>Saldos por Empleado</span>
+                        </h2>
+                        <button onclick="openAddMemberModal()" class="text-xs text-emerald-600 font-semibold hover:underline flex items-center space-x-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Añadir</span>
+                        </button>
+                    </div>
+                    
+                    <div id="teamBalanceList" class="space-y-3 custom-scrollbar max-h-80 overflow-y-auto pr-1">
+                        <!-- Cargado por JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Columna Central/Derecha: Calendario y Registro -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Calendario de Ausencias -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="calendar" class="w-5 h-5 text-emerald-600"></i>
+                            <span id="calendarMonthYear">Calendario</span>
+                        </h2>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200">
+                                <i data-lucide="chevron-left" class="w-4 h-4 text-slate-600"></i>
+                            </button>
+                            <button onclick="resetMonth()" class="px-2.5 py-1 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50">
+                                Hoy
+                            </button>
+                            <button onclick="changeMonth(1)" class="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200">
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Muestra de festivos y leyenda -->
+                    <div class="flex flex-wrap gap-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 bg-red-100 border border-red-300 rounded-full inline-block"></span>
+                            <span>Festivo Madrid</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 bg-emerald-100 border border-emerald-400 rounded-full inline-block"></span>
+                            <span>Vacaciones</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 bg-rose-100 border border-rose-400 rounded-full inline-block"></span>
+                            <span>Baja/Enfermedad</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 bg-indigo-100 border border-indigo-400 rounded-full inline-block"></span>
+                            <span>Horas/Días Extra</span>
+                        </div>
+                    </div>
+
+                    <!-- Rejilla del Calendario -->
+                    <div class="grid grid-cols-7 gap-1 text-center font-semibold text-xs text-slate-500 py-2 border-b border-slate-100">
+                        <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div class="text-amber-600">Sáb</div><div class="text-amber-600">Dom</div>
+                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-xs">
+                        <!-- Días generados por JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Historial de Registros -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="list-checks" class="w-5 h-5 text-emerald-600"></i>
+                            <span>Historial de Registros</span>
+                        </h2>
+                        <span id="recordCount" class="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">0</span>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+                                    <th class="py-2.5 px-3">Empleado</th>
+                                    <th class="py-2.5 px-3">Tipo</th>
+                                    <th class="py-2.5 px-3">Fechas / Horas</th>
+                                    <th class="py-2.5 px-3">Días Hábles</th>
+                                    <th class="py-2.5 px-3">Notas</th>
+                                    <th class="py-2.5 px-3 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Filas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Gestión de Festivos Madrid -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                        <i data-lucide="calendar-days" class="w-5 h-5 text-rose-500"></i>
+                        <span>Festivos Madrid Capital & Personalizados</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Los días festivos no cuentan como días de vacaciones consumidos.</p>
+                </div>
+                <button onclick="addCustomHoliday()" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition flex items-center space-x-1">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Añadir Festivo</span>
+                </button>
+            </div>
+            
+            <div id="holidaysList" class="flex flex-wrap gap-2 text-xs">
+                <!-- Badges de festivos cargados dinámicamente -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Añadir Empleado -->
+    <div id="addMemberModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800">Añadir Miembro del Equipo</h3>
+                <button onclick="closeAddMemberModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <form onsubmit="saveNewMember(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
+                    <input type="text" id="memberName" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ej: María García">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Días de Vacaciones Anuales</label>
+                    <input type="number" id="memberDays" value="22" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeAddMemberModal()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Lógica Local -->
+    <script>
+        // --- BASE DE DATOS INICIAL ---
+        const DEFAULT_TEAM = [
+            { id: '1', name: 'Mi Nombre (Resp)', annualDays: 22 },
+            { id: '2', name: 'Ana Gómez', annualDays: 22 },
+            { id: '3', name: 'Carlos Ruíz', annualDays: 22 },
+            { id: '4', name: 'Laura Martín', annualDays: 22 },
+            { id: '5', name: 'David Fernández', annualDays: 22 },
+            { id: '6', name: 'Elena Sanz', annualDays: 22 }
+        ];
+
+        // Festivos de Madrid Capital (Actualizados)
+        const DEFAULT_HOLIDAYS = [
+            "2026-01-01", "2026-01-06", "2026-04-02", "2026-04-03", "2026-05-01", 
+            "2026-05-02", "2026-05-15", "2026-08-15", "2026-10-12", "2026-11-01", 
+            "2026-11-09", "2026-12-06", "2026-12-08", "2026-12-25",
+            "2027-01-01", "2027-01-06", "2027-03-25", "2027-03-26", "2027-05-01", 
+            "2027-05-02", "2027-05-15", "2027-08-15", "2027-10-12", "2027-11-01", 
+            "2027-11-09", "2027-12-06", "2027-12-08", "2027-12-25"
+        ];
+
+        let state = {
+            team: JSON.parse(localStorage.getItem('vac_team')) || DEFAULT_TEAM,
+            records: JSON.parse(localStorage.getItem('vac_records')) || [],
+            holidays: JSON.parse(localStorage.getItem('vac_holidays')) || DEFAULT_HOLIDAYS,
+            currentDate: new Date()
+        };
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            setDefaultDates();
+            renderAll();
+        });
+
+        function saveState() {
+            localStorage.setItem('vac_team', JSON.stringify(state.team));
+            localStorage.setItem('vac_records', JSON.stringify(state.records));
+            localStorage.setItem('vac_holidays', JSON.stringify(state.holidays));
+            renderAll();
+        }
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        }
+
+        function renderAll() {
+            renderEmployeeSelect();
+            renderTeamBalance();
+            renderRecordsTable();
+            renderCalendar();
+            renderHolidays();
+            updateMetrics();
+        }
+
+        // --- RENDERIZADO Y LÓGICA ---
+        function renderEmployeeSelect() {
+            const select = document.getElementById('employeeSelect');
+            select.innerHTML = state.team.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        }
+
+        function toggleFormFields() {
+            const type = document.getElementById('typeSelect').value;
+            const hoursField = document.getElementById('hoursField');
+            const dateRangeFields = document.getElementById('dateRangeFields');
+
+            if (type === 'medical_hours' || type === 'extra_hours') {
+                hoursField.classList.remove('hidden');
+                document.getElementById('hoursCount').required = true;
+            } else {
+                hoursField.classList.add('hidden');
+                document.getElementById('hoursCount').required = false;
+            }
+        }
+
+        // Cálculo de días laborables excluyendo Fines de semana y Festivos
+        function calculateBusinessDays(startDateStr, endDateStr) {
+            let count = 0;
+            let curDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+
+            while (curDate <= endDate) {
+                const dayOfWeek = curDate.getDay();
+                const formattedDate = curDate.toISOString().split('T')[0];
+                
+                // 0 = Domingo, 6 = Sábado
+                const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                const isHoliday = state.holidays.includes(formattedDate);
+
+                if (!isWeekend && !isHoliday) {
+                    count++;
+                }
+                curDate.setDate(curDate.getDate() + 1);
+            }
+            return count;
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const empId = document.getElementById('employeeSelect').value;
+            const type = document.getElementById('typeSelect').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const hours = parseFloat(document.getElementById('hoursCount').value) || 0;
+            const notes = document.getElementById('notes').value;
+
+            let workingDays = 0;
+            if (!type.includes('hours')) {
+                workingDays = calculateBusinessDays(startDate, endDate);
+            }
+
+            const record = {
+                id: Date.now().toString(),
+                employeeId: empId,
+                type,
+                startDate,
+                endDate,
+                hours,
+                workingDays,
+                notes
+            };
+
+            state.records.push(record);
+            saveState();
+            document.getElementById('absenceForm').reset();
+            setDefaultDates();
+            toggleFormFields();
+        }
+
+        function deleteRecord(id) {
+            state.records = state.records.filter(r => r.id !== id);
+            saveState();
+        }
+
+        function updateMetrics() {
+            document.getElementById('totalTeamCount').innerText = state.team.length;
+            
+            const totalVac = state.records
+                .filter(r => r.type.startsWith('vacation'))
+                .reduce((acc, r) => acc + r.workingDays, 0);
+            document.getElementById('totalVacationDays').innerText = totalVac + ' días';
+
+            const totalSick = state.records
+                .filter(r => r.type === 'sick_leave')
+                .reduce((acc, r) => acc + r.workingDays, 0);
+            document.getElementById('totalSickDays').innerText = totalSick + ' días';
+
+            const extraH = state.records
+                .filter(r => r.type === 'extra_hours')
+                .reduce((acc, r) => acc + r.hours, 0);
+            const medH = state.records
+                .filter(r => r.type === 'medical_hours')
+                .reduce((acc, r) => acc + r.hours, 0);
+            document.getElementById('totalExtraHours').innerText = `+${extraH}h / -${medH}h`;
+        }
+
+        function renderTeamBalance() {
+            const container = document.getElementById('teamBalanceList');
+            container.innerHTML = state.team.map(emp => {
+                const empRecords = state.records.filter(r => r.employeeId === emp.id);
+                const usedDays = empRecords
+                    .filter(r => r.type.startsWith('vacation'))
+                    .reduce((acc, r) => acc + r.workingDays, 0);
+                const extraDays = empRecords
+                    .filter(r => r.type === 'extra_days')
+                    .reduce((acc, r) => acc + r.workingDays, 0);
+                
+                const remainingDays = (emp.annualDays + extraDays) - usedDays;
+
+                return `
+                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
+                        <div class="flex justify-between items-center font-semibold text-slate-800">
+                            <span>${emp.name}</span>
+                            <span class="${remainingDays < 0 ? 'text-rose-600' : 'text-emerald-700'} font-bold">
+                                ${remainingDays} días libres
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full" style="width: ${Math.min(100, (usedDays / (emp.annualDays || 1)) * 100)}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Consumidos: ${usedDays}d</span>
+                            <span>Asignados: ${emp.annualDays}d</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecordsTable() {
+            const tbody = document.getElementById('recordsTableBody');
+            document.getElementById('recordCount').innerText = state.records.length;
+
+            if (state.records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-400">No hay registros guardados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = state.records.slice().reverse().map(r => {
+                const emp = state.team.find(m => m.id === r.employeeId) || { name: 'Desconocido' };
+                const typeLabels = {
+                    vacation_summer: 'Vacaciones (Verano)',
+                    vacation_christmas: 'Vacaciones (Navidad)',
+                    vacation_easter: 'Vacaciones (Semana Santa)',
+                    vacation_other: 'Vacaciones (Asuntos P.)',
+                    sick_leave: 'Baja Médica',
+                    medical_hours: 'Ausencia Médica (Horas)',
+                    extra_hours: 'Horas Extra',
+                    extra_days: 'Días Extra'
+                };
+
+                const dateStr = r.type.includes('hours') 
+                    ? `${r.startDate} (${r.hours}h)`
+                    : `${r.startDate} al ${r.endDate}`;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2 px-3 font-medium text-slate-800">${emp.name}</td>
+                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 border border-slate-200">${typeLabels[r.type] || r.type}</span></td>
+                        <td class="py-2 px-3">${dateStr}</td>
+                        <td class="py-2 px-3 font-semibold text-emerald-700">${r.workingDays ? r.workingDays + ' d' : '-'}</td>
+                        <td class="py-2 px-3 text-slate-500 max-w-xs truncate">${r.notes || '-'}</td>
+                        <td class="py-2 px-3 text-right">
+                            <button onclick="deleteRecord('${r.id}')" class="text-rose-500 hover:text-rose-700 p-1">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // --- CALENDARIO ---
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const date = state.currentDate;
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendarMonthYear').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            let startingDay = firstDay.getDay() - 1; 
+            if (startingDay === -1) startingDay = 6; // Ajuste para el Lunes
+
+            // Huecos en blanco mes anterior
+            for (let i = 0; i < startingDay; i++) {
+                grid.innerHTML += `<div class="h-16 bg-slate-50/50 rounded-lg border border-dashed border-slate-100"></div>`;
+            }
+
+            // Días del mes
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const curDateObj = new Date(year, month, day);
+                const isWeekend = (curDateObj.getDay() === 0 || curDateObj.getDay() === 6);
+                const isHoliday = state.holidays.includes(fullDateStr);
+
+                // Buscar eventos del día
+                const dayEvents = state.records.filter(r => {
+                    return fullDateStr >= r.startDate && fullDateStr <= r.endDate;
+                });
+
+                let bgClass = "bg-white";
+                if (isWeekend) bgClass = "bg-slate-100/70 text-slate-400";
+                if (isHoliday) bgClass = "bg-red-50 text-red-700 border-red-200 font-bold";
+
+                let eventsHtml = dayEvents.map(ev => {
+                    const emp = state.team.find(m => m.id === ev.employeeId);
+                    const name = emp ? emp.name.split(' ')[0] : 'Desconocido';
+                    let badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                    if (ev.type === 'sick_leave') badgeColor = "bg-rose-100 text-rose-800 border-rose-200";
+                    if (ev.type.includes('hours')) badgeColor = "bg-indigo-100 text-indigo-800 border-indigo-200";
+                    
+                    return `<div class="truncate text-[9px] px-1 py-0.5 rounded border ${badgeColor} font-medium mt-0.5" title="${emp?.name} - ${ev.type}">${name}</div>`;
+                }).join('');
+
+                grid.innerHTML += `
+                    <div class="h-16 p-1 rounded-lg border border-slate-200 ${bgClass} flex flex-col justify-between overflow-hidden">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-[11px] ${isHoliday ? 'text-red-600' : ''}">${day}</span>
+                            ${isHoliday ? '<span class="text-[8px] text-red-500 uppercase font-bold">Festivo</span>' : ''}
+                        </div>
+                        <div class="custom-scrollbar overflow-y-auto max-h-10 space-y-0.5">
+                            ${eventsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(delta) {
+            state.currentDate.setMonth(state.currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function resetMonth() {
+            state.currentDate = new Date();
+            renderCalendar();
+        }
+
+        // --- GESTIÓN DE FESTIVOS ---
+        function renderHolidays() {
+            const container = document.getElementById('holidaysList');
+            container.innerHTML = state.holidays.sort().map(h => `
+                <span class="inline-flex items-center space-x-1 px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-md font-medium">
+                    <span>${h}</span>
+                    <button onclick="removeHoliday('${h}')" class="hover:text-rose-900 ml-1">×</button>
+                </span>
+            `).join('');
+        }
+
+        function addCustomHoliday() {
+            const date = prompt("Introduce la fecha del festivo (AAAA-MM-DD):");
+            if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                if (!state.holidays.includes(date)) {
+                    state.holidays.push(date);
+                    saveState();
+                }
+            } else if (date) {
+                alert("Formato incorrecto. Usa AAAA-MM-DD");
+            }
+        }
+
+        function removeHoliday(date) {
+            state.holidays = state.holidays.filter(h => h !== date);
+            saveState();
+        }
+
+        // --- MIEMBROS DE EQUIPO ---
+        function openAddMemberModal() { document.getElementById('addMemberModal').classList.remove('hidden'); }
+        function closeAddMemberModal() { document.getElementById('addMemberModal').classList.add('hidden'); }
+
+        function saveNewMember(e) {
+            e.preventDefault();
+            const name = document.getElementById('memberName').value;
+            const days = parseInt(document.getElementById('memberDays').value) || 22;
+
+            state.team.push({
+                id: Date.now().toString(),
+                name,
+                annualDays: days
+            });
+
+            saveState();
+            closeAddMemberModal();
+            document.getElementById('memberName').value = '';
+        }
+
+        // --- COPIAS DE SEGURIDAD (JSON) ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `backup_vacaciones_${new Date().toISOString().split('T')[0]}.json`);
+            dlAnchorElem.click();
+        }
+
+        function importData(e) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (event) {
+                try {
+                    const importedState = JSON.parse(event.target.result);
+                    if (importedState.team && importedState.records) {
+                        state = importedState;
+                        state.currentDate = new Date();
+                        saveState();
+                        alert('Copia de seguridad cargada correctamente.');
+                    } else {
+                        alert('El archivo no contiene un formato de respaldo válido.');
+                    }
+                } catch (err) {
+                    alert('Error al leer el archivo JSON.');
+                }
+            };
+            fileReader.readAsText(e.target.files[0]);
+        }
+    </script>
+</body>
+</html>
