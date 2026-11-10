@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Vacaciones y Ausencias - Madrid</title>
+    <title>Gestión de Vacaciones y Equipo - Madrid</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -26,8 +26,8 @@
                         <i data-lucide="calendar-range" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold text-slate-800 leading-tight">Control de Vacaciones</h1>
-                        <p class="text-xs text-slate-500">Madrid Capital • Equipo</p>
+                        <h1 class="text-lg font-bold text-slate-800 leading-tight">Control de Vacaciones y Equipo</h1>
+                        <p class="text-xs text-slate-500">Madrid Capital • Plantilla</p>
                     </div>
                 </div>
                 
@@ -49,53 +49,48 @@
     <!-- Contenido Principal -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Métricas Rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                    <i data-lucide="users" class="w-6 h-6"></i>
-                </div>
+        <!-- PRIMERA VISTA: GESTIÓN DE PLANTILLA Y EMPLEADOS -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo Total</p>
-                    <p id="totalTeamCount" class="text-xl font-bold text-slate-800">0</p>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                        <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Gestión de Plantilla y Miembros del Equipo</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Añade, modifica datos, gestiona fechas de alta/baja o elimina personal.</p>
                 </div>
+                <button onclick="openMemberModal()" class="px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition flex items-center space-x-1">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>Añadir Empleado</span>
+                </button>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                    <i data-lucide="sun" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Días Vacaciones Usados</p>
-                    <p id="totalVacationDays" class="text-xl font-bold text-slate-800">0</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
-                    <i data-lucide="stethoscope" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Bajas y Enfermedades</p>
-                    <p id="totalSickDays" class="text-xl font-bold text-slate-800">0 días</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-                    <i data-lucide="clock" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Balance Horas Extra</p>
-                    <p id="totalExtraHours" class="text-xl font-bold text-slate-800">0 h</p>
-                </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
+                            <th class="py-2.5 px-3">Empleado</th>
+                            <th class="py-2.5 px-3">Fecha Alta</th>
+                            <th class="py-2.5 px-3">Fecha Baja</th>
+                            <th class="py-2.5 px-3">Días Asignados</th>
+                            <th class="py-2.5 px-3">Días Usados</th>
+                            <th class="py-2.5 px-3">Saldo Libres</th>
+                            <th class="py-2.5 px-3">Horas Extra Netas</th>
+                            <th class="py-2.5 px-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fullTeamTableBody" class="divide-y divide-slate-100 text-slate-700">
+                        <!-- Carga dinámica -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Secciones principales -->
+        <!-- SECCIÓN DE REGISTRO Y CALENDARIO -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Columna Izquierda: Formulario + Saldos de Equipo -->
+            <!-- Columna Izquierda: Formulario de Registro -->
             <div class="space-y-6">
-                
-                <!-- Registrar Solicitud/Ausencia -->
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
                     <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
                         <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-600"></i>
@@ -106,18 +101,18 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Empleado</label>
                             <select id="employeeSelect" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
-                                <!-- Cargado dinámicamente -->
+                                <!-- Opciones por JS -->
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Ausencia / Registro</label>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo de Registro</label>
                             <select id="typeSelect" onchange="toggleFormFields()" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
                                 <option value="vacation_summer">Vacaciones - Verano</option>
                                 <option value="vacation_christmas">Vacaciones - Navidad</option>
                                 <option value="vacation_easter">Vacaciones - Semana Santa</option>
                                 <option value="vacation_other">Vacaciones - Asuntos Propios</option>
-                                <option value="sick_leave">Baja Médica / Enfermedad (Días)</option>
+                                <option value="sick_leave">Baja Médica / Enfermedad</option>
                                 <option value="medical_hours">Ausencia Médica (Horas)</option>
                                 <option value="extra_hours">Horas Extra Trabajadas</option>
                                 <option value="extra_days">Días Extra Trabajados</option>
@@ -141,8 +136,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Observaciones / Motivo</label>
-                            <input type="text" id="notes" placeholder="Opcional..." class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Observaciones</label>
+                            <input type="text" id="notes" placeholder="Motivo o detalle..." class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
                         </div>
 
                         <button type="submit" class="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg shadow-sm transition">
@@ -150,33 +145,13 @@
                         </button>
                     </form>
                 </div>
-
-                <!-- Saldos Rápidos de Empleados con opción de BORRAR -->
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
-                            <i data-lucide="user-check" class="w-5 h-5 text-emerald-600"></i>
-                            <span>Saldos de Vacaciones</span>
-                        </h2>
-                        <button onclick="openAddMemberModal()" class="text-xs text-emerald-600 font-semibold hover:underline flex items-center space-x-1">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                            <span>Añadir</span>
-                        </button>
-                    </div>
-                    
-                    <div id="teamBalanceList" class="space-y-3 custom-scrollbar max-h-80 overflow-y-auto pr-1">
-                        <!-- Cargado por JS -->
-                    </div>
-                </div>
-
             </div>
 
-            <!-- Columna Central/Derecha: Calendario y Registro -->
+            <!-- Columna Derecha: Calendario e Historial -->
             <div class="lg:col-span-2 space-y-6">
-                
                 <!-- Calendario de Ausencias -->
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-center justify-between">
                         <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
                             <i data-lucide="calendar" class="w-5 h-5 text-emerald-600"></i>
                             <span id="calendarMonthYear">Calendario</span>
@@ -185,9 +160,7 @@
                             <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200">
                                 <i data-lucide="chevron-left" class="w-4 h-4 text-slate-600"></i>
                             </button>
-                            <button onclick="resetMonth()" class="px-2.5 py-1 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50">
-                                Hoy
-                            </button>
+                            <button onclick="resetMonth()" class="px-2.5 py-1 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50">Hoy</button>
                             <button onclick="changeMonth(1)" class="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200">
                                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
                             </button>
@@ -206,158 +179,105 @@
                         </div>
                         <div class="flex items-center space-x-1.5">
                             <span class="w-3 h-3 bg-rose-100 border border-rose-400 rounded-full inline-block"></span>
-                            <span>Baja/Enfermedad</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <span class="w-3 h-3 bg-indigo-100 border border-indigo-400 rounded-full inline-block"></span>
-                            <span>Horas/Días Extra</span>
+                            <span>Baja Médica</span>
                         </div>
                     </div>
 
-                    <!-- Rejilla del Calendario -->
                     <div class="grid grid-cols-7 gap-1 text-center font-semibold text-xs text-slate-500 py-2 border-b border-slate-100">
                         <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div class="text-amber-600">Sáb</div><div class="text-amber-600">Dom</div>
                     </div>
-                    <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-xs">
-                        <!-- Generado por JS -->
-                    </div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-xs"></div>
                 </div>
 
-                <!-- Historial de Registros -->
+                <!-- Historial -->
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
-                            <i data-lucide="list-checks" class="w-5 h-5 text-emerald-600"></i>
-                            <span>Historial de Ausencias</span>
-                        </h2>
-                        <span id="recordCount" class="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">0</span>
-                    </div>
-
-                    <div class="overflow-x-auto custom-scrollbar">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                        <i data-lucide="list-checks" class="w-5 h-5 text-emerald-600"></i>
+                        <span>Historial de Registros</span>
+                    </h2>
+                    <div class="overflow-x-auto custom-scrollbar max-h-60">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
                                     <th class="py-2.5 px-3">Empleado</th>
                                     <th class="py-2.5 px-3">Tipo</th>
                                     <th class="py-2.5 px-3">Fechas / Horas</th>
-                                    <th class="py-2.5 px-3">Días Hábles</th>
-                                    <th class="py-2.5 px-3">Notas</th>
+                                    <th class="py-2.5 px-3">Días Hábitos</th>
                                     <th class="py-2.5 px-3 text-right">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Filas por JS -->
-                            </tbody>
+                            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
                         </table>
                     </div>
                 </div>
-
-            </div>
-
-        </div>
-
-        <!-- LISTA Y GESTIÓN COMPLETA DEL EQUIPO -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
-                        <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
-                        <span>Lista Completa del Equipo</span>
-                    </h2>
-                    <p class="text-xs text-slate-500">Gestión global de empleados, días asignados y opción de baja/eliminación.</p>
-                </div>
-                <button onclick="openAddMemberModal()" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition flex items-center space-x-1">
-                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                    <span>Nuevo Empleado</span>
-                </button>
-            </div>
-
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider">
-                            <th class="py-2.5 px-3">Nombre</th>
-                            <th class="py-2.5 px-3">Días Anuales</th>
-                            <th class="py-2.5 px-3">Días Consumidos</th>
-                            <th class="py-2.5 px-3">Días Restantes</th>
-                            <th class="py-2.5 px-3">Horas Extra (Bolsa)</th>
-                            <th class="py-2.5 px-3 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fullTeamTableBody" class="divide-y divide-slate-100 text-slate-700">
-                        <!-- Filas por JS -->
-                    </tbody>
-                </table>
             </div>
         </div>
 
-        <!-- GESTIÓN DE FESTIVOS MADRID -->
+        <!-- FESTIVOS MADRID -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
             <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
-                        <i data-lucide="calendar-days" class="w-5 h-5 text-rose-500"></i>
-                        <span>Festivos Madrid Capital & Personalizados</span>
-                    </h2>
-                    <p class="text-xs text-slate-500">Los días festivos no restan del saldo de vacaciones.</p>
-                </div>
-                <button onclick="addCustomHoliday()" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition flex items-center space-x-1">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    <span>Añadir Festivo</span>
+                <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="calendar-days" class="w-5 h-5 text-rose-500"></i>
+                    <span>Festivos Madrid Capital</span>
+                </h2>
+                <button onclick="addCustomHoliday()" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg">
+                    + Añadir Festivo
                 </button>
             </div>
-            
-            <div id="holidaysList" class="flex flex-wrap gap-2 text-xs">
-                <!-- Badges de festivos -->
-            </div>
+            <div id="holidaysList" class="flex flex-wrap gap-2 text-xs"></div>
         </div>
 
     </main>
 
-    <!-- Modal Añadir Empleado -->
-    <div id="addMemberModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+    <!-- MODAL AÑADIR / EDITAR EMPLEADO -->
+    <div id="memberModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl border border-slate-200 max-w-sm w-full p-5 space-y-4 shadow-xl">
             <div class="flex items-center justify-between">
-                <h3 class="font-bold text-slate-800">Añadir Miembro del Equipo</h3>
-                <button onclick="closeAddMemberModal()" class="text-slate-400 hover:text-slate-600">
+                <h3 id="modalTitle" class="font-bold text-slate-800">Empleado</h3>
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <form onsubmit="saveNewMember(event)" class="space-y-3">
+            <form onsubmit="saveMember(event)" class="space-y-3">
+                <input type="hidden" id="memberId">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo</label>
-                    <input type="text" id="memberName" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ej: María García">
+                    <input type="text" id="memberName" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Días de Vacaciones Anuales</label>
-                    <input type="number" id="memberDays" value="22" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Días Vacaciones Anuales</label>
+                    <input type="number" id="memberDays" value="22" required class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha de Alta</label>
+                        <input type="date" id="memberStartDate" class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha de Baja</label>
+                        <input type="date" id="memberEndDate" class="w-full text-sm border-slate-200 rounded-lg focus:ring-emerald-500">
+                    </div>
                 </div>
                 <div class="flex justify-end space-x-2 pt-2">
-                    <button type="button" onclick="closeAddMemberModal()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                    <button type="button" onclick="closeMemberModal()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
                     <button type="submit" class="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- JavaScript Integrado -->
     <script>
         const DEFAULT_TEAM = [
-            { id: '1', name: 'Mi Nombre (Resp)', annualDays: 22 },
-            { id: '2', name: 'Ana Gómez', annualDays: 22 },
-            { id: '3', name: 'Carlos Ruíz', annualDays: 22 },
-            { id: '4', name: 'Laura Martín', annualDays: 22 },
-            { id: '5', name: 'David Fernández', annualDays: 22 },
-            { id: '6', name: 'Elena Sanz', annualDays: 22 }
+            { id: '1', name: 'Mi Nombre (Resp)', annualDays: 22, startDate: '2026-01-01', endDate: '' },
+            { id: '2', name: 'Ana Gómez', annualDays: 22, startDate: '2026-01-01', endDate: '' },
+            { id: '3', name: 'Carlos Ruíz', annualDays: 22, startDate: '2026-02-15', endDate: '' },
+            { id: '4', name: 'Laura Martín', annualDays: 22, startDate: '2026-01-01', endDate: '' }
         ];
 
         const DEFAULT_HOLIDAYS = [
             "2026-01-01", "2026-01-06", "2026-04-02", "2026-04-03", "2026-05-01", 
             "2026-05-02", "2026-05-15", "2026-08-15", "2026-10-12", "2026-11-01", 
-            "2026-11-09", "2026-12-06", "2026-12-08", "2026-12-25",
-            "2027-01-01", "2027-01-06", "2027-03-25", "2027-03-26", "2027-05-01", 
-            "2027-05-02", "2027-05-15", "2027-08-15", "2027-10-12", "2027-11-01", 
-            "2027-11-09", "2027-12-06", "2027-12-08", "2027-12-25"
+            "2026-11-09", "2026-12-06", "2026-12-08", "2026-12-25"
         ];
 
         let state = {
@@ -387,13 +307,60 @@
         }
 
         function renderAll() {
-            renderEmployeeSelect();
-            renderTeamBalance();
             renderFullTeamTable();
+            renderEmployeeSelect();
             renderRecordsTable();
             renderCalendar();
             renderHolidays();
-            updateMetrics();
+        }
+
+        function renderFullTeamTable() {
+            const tbody = document.getElementById('fullTeamTableBody');
+            if (state.team.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-slate-400">No hay empleados registrados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = state.team.map(emp => {
+                const empRecords = state.records.filter(r => r.employeeId === emp.id);
+                const usedDays = empRecords
+                    .filter(r => r.type.startsWith('vacation'))
+                    .reduce((acc, r) => acc + r.workingDays, 0);
+                const extraDays = empRecords
+                    .filter(r => r.type === 'extra_days')
+                    .reduce((acc, r) => acc + r.workingDays, 0);
+                
+                const extraH = empRecords.filter(r => r.type === 'extra_hours').reduce((acc, r) => acc + r.hours, 0);
+                const medH = empRecords.filter(r => r.type === 'medical_hours').reduce((acc, r) => acc + r.hours, 0);
+                const netHours = extraH - medH;
+
+                const remainingDays = (emp.annualDays + extraDays) - usedDays;
+                const isBaja = emp.endDate && emp.endDate <= new Date().toISOString().split('T')[0];
+
+                return `
+                    <tr class="hover:bg-slate-50 transition ${isBaja ? 'bg-slate-100/60 opacity-75' : ''}">
+                        <td class="py-2.5 px-3 font-bold text-slate-800">
+                            ${emp.name}
+                            ${isBaja ? '<span class="ml-1 text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded">Baja</span>' : ''}
+                        </td>
+                        <td class="py-2.5 px-3 text-slate-600">${emp.startDate || '-'}</td>
+                        <td class="py-2.5 px-3 text-slate-600">${emp.endDate || '-'}</td>
+                        <td class="py-2.5 px-3 font-medium">${emp.annualDays} días</td>
+                        <td class="py-2.5 px-3 font-medium text-amber-600">${usedDays} días</td>
+                        <td class="py-2.5 px-3 font-bold ${remainingDays < 0 ? 'text-rose-600' : 'text-emerald-700'}">${remainingDays} días</td>
+                        <td class="py-2.5 px-3 font-medium ${netHours >= 0 ? 'text-slate-700' : 'text-rose-600'}">${netHours >= 0 ? '+' : ''}${netHours} hrs</td>
+                        <td class="py-2.5 px-3 text-right space-x-1">
+                            <button onclick="openMemberModal('${emp.id}')" class="text-slate-500 hover:text-emerald-700 p-1">
+                                <i data-lucide="edit" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="deleteEmployee('${emp.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
         }
 
         function renderEmployeeSelect() {
@@ -404,7 +371,6 @@
         function toggleFormFields() {
             const type = document.getElementById('typeSelect').value;
             const hoursField = document.getElementById('hoursField');
-
             if (type === 'medical_hours' || type === 'extra_hours') {
                 hoursField.classList.remove('hidden');
                 document.getElementById('hoursCount').required = true;
@@ -422,13 +388,10 @@
             while (curDate <= endDate) {
                 const dayOfWeek = curDate.getDay();
                 const formattedDate = curDate.toISOString().split('T')[0];
-                
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
                 const isHoliday = state.holidays.includes(formattedDate);
 
-                if (!isWeekend && !isHoliday) {
-                    count++;
-                }
+                if (!isWeekend && !isHoliday) count++;
                 curDate.setDate(curDate.getDate() + 1);
             }
             return count;
@@ -448,7 +411,7 @@
                 workingDays = calculateBusinessDays(startDate, endDate);
             }
 
-            const record = {
+            state.records.push({
                 id: Date.now().toString(),
                 employeeId: empId,
                 type,
@@ -457,9 +420,8 @@
                 hours,
                 workingDays,
                 notes
-            };
+            });
 
-            state.records.push(record);
             saveState();
             document.getElementById('absenceForm').reset();
             setDefaultDates();
@@ -471,153 +433,89 @@
             saveState();
         }
 
-        // --- BORRAR EMPLEADO ---
+        function openMemberModal(empId = null) {
+            const modal = document.getElementById('memberModal');
+            document.getElementById('memberId').value = empId || '';
+            
+            if (empId) {
+                const emp = state.team.find(m => m.id === empId);
+                document.getElementById('modalTitle').innerText = 'Editar Empleado';
+                document.getElementById('memberName').value = emp.name;
+                document.getElementById('memberDays').value = emp.annualDays;
+                document.getElementById('memberStartDate').value = emp.startDate || '';
+                document.getElementById('memberEndDate').value = emp.endDate || '';
+            } else {
+                document.getElementById('modalTitle').innerText = 'Añadir Empleado';
+                document.getElementById('memberName').value = '';
+                document.getElementById('memberDays').value = 22;
+                document.getElementById('memberStartDate').value = '';
+                document.getElementById('memberEndDate').value = '';
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeMemberModal() {
+            document.getElementById('memberModal').classList.add('hidden');
+        }
+
+        function saveMember(e) {
+            e.preventDefault();
+            const id = document.getElementById('memberId').value;
+            const name = document.getElementById('memberName').value;
+            const days = parseInt(document.getElementById('memberDays').value) || 22;
+            const startDate = document.getElementById('memberStartDate').value;
+            const endDate = document.getElementById('memberEndDate').value;
+
+            if (id) {
+                const emp = state.team.find(m => m.id === id);
+                if (emp) {
+                    emp.name = name;
+                    emp.annualDays = days;
+                    emp.startDate = startDate;
+                    emp.endDate = endDate;
+                }
+            } else {
+                state.team.push({
+                    id: Date.now().toString(),
+                    name,
+                    annualDays: days,
+                    startDate,
+                    endDate
+                });
+            }
+
+            saveState();
+            closeMemberModal();
+        }
+
         function deleteEmployee(empId) {
             const emp = state.team.find(m => m.id === empId);
             if (!emp) return;
 
-            if (confirm(`¿Estás seguro de que quieres eliminar a ${emp.name}? Se borrarán también todos sus registros de vacaciones.`)) {
+            if (confirm(`¿Eliminar a ${emp.name}? Se borrarán también sus registros.`)) {
                 state.team = state.team.filter(m => m.id !== empId);
                 state.records = state.records.filter(r => r.employeeId !== empId);
                 saveState();
             }
         }
 
-        function updateMetrics() {
-            document.getElementById('totalTeamCount').innerText = state.team.length;
-            
-            const totalVac = state.records
-                .filter(r => r.type.startsWith('vacation'))
-                .reduce((acc, r) => acc + r.workingDays, 0);
-            document.getElementById('totalVacationDays').innerText = totalVac + ' días';
-
-            const totalSick = state.records
-                .filter(r => r.type === 'sick_leave')
-                .reduce((acc, r) => acc + r.workingDays, 0);
-            document.getElementById('totalSickDays').innerText = totalSick + ' días';
-
-            const extraH = state.records
-                .filter(r => r.type === 'extra_hours')
-                .reduce((acc, r) => acc + r.hours, 0);
-            const medH = state.records
-                .filter(r => r.type === 'medical_hours')
-                .reduce((acc, r) => acc + r.hours, 0);
-            document.getElementById('totalExtraHours').innerText = `+${extraH}h / -${medH}h`;
-        }
-
-        function renderTeamBalance() {
-            const container = document.getElementById('teamBalanceList');
-            if (state.team.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No hay miembros en el equipo.</p>`;
-                return;
-            }
-
-            container.innerHTML = state.team.map(emp => {
-                const empRecords = state.records.filter(r => r.employeeId === emp.id);
-                const usedDays = empRecords
-                    .filter(r => r.type.startsWith('vacation'))
-                    .reduce((acc, r) => acc + r.workingDays, 0);
-                const extraDays = empRecords
-                    .filter(r => r.type === 'extra_days')
-                    .reduce((acc, r) => acc + r.workingDays, 0);
-                
-                const remainingDays = (emp.annualDays + extraDays) - usedDays;
-
-                return `
-                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
-                        <div class="flex justify-between items-center font-semibold text-slate-800">
-                            <span class="truncate">${emp.name}</span>
-                            <div class="flex items-center space-x-2">
-                                <span class="${remainingDays < 0 ? 'text-rose-600' : 'text-emerald-700'} font-bold">
-                                    ${remainingDays}d libres
-                                </span>
-                                <button onclick="deleteEmployee('${emp.id}')" class="text-slate-400 hover:text-rose-600 p-0.5" title="Eliminar empleado">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-emerald-500 h-full" style="width: ${Math.min(100, (usedDays / (emp.annualDays || 1)) * 100)}%"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        // TABLA COMPLETA DEL EQUIPO EN LISTA
-        function renderFullTeamTable() {
-            const tbody = document.getElementById('fullTeamTableBody');
-            if (state.team.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-400">No hay miembros agregados al equipo.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = state.team.map(emp => {
-                const empRecords = state.records.filter(r => r.employeeId === emp.id);
-                const usedDays = empRecords
-                    .filter(r => r.type.startsWith('vacation'))
-                    .reduce((acc, r) => acc + r.workingDays, 0);
-                const extraDays = empRecords
-                    .filter(r => r.type === 'extra_days')
-                    .reduce((acc, r) => acc + r.workingDays, 0);
-                
-                const extraH = empRecords.filter(r => r.type === 'extra_hours').reduce((acc, r) => acc + r.hours, 0);
-                const medH = empRecords.filter(r => r.type === 'medical_hours').reduce((acc, r) => acc + r.hours, 0);
-                const netHours = extraH - medH;
-
-                const remainingDays = (emp.annualDays + extraDays) - usedDays;
-
-                return `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 px-3 font-semibold text-slate-800">${emp.name}</td>
-                        <td class="py-2.5 px-3">${emp.annualDays} días</td>
-                        <td class="py-2.5 px-3 font-medium text-amber-600">${usedDays} días</td>
-                        <td class="py-2.5 px-3 font-bold ${remainingDays < 0 ? 'text-rose-600' : 'text-emerald-700'}">${remainingDays} días</td>
-                        <td class="py-2.5 px-3 font-medium ${netHours >= 0 ? 'text-slate-700' : 'text-rose-600'}">${netHours >= 0 ? '+' : ''}${netHours} hrs</td>
-                        <td class="py-2.5 px-3 text-right">
-                            <button onclick="deleteEmployee('${emp.id}')" class="text-rose-500 hover:text-rose-700 px-2 py-1 bg-rose-50 hover:bg-rose-100 rounded text-[11px] font-medium transition">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
         function renderRecordsTable() {
             const tbody = document.getElementById('recordsTableBody');
-            document.getElementById('recordCount').innerText = state.records.length;
-
             if (state.records.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-400">No hay registros guardados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Sin registros.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = state.records.slice().reverse().map(r => {
                 const emp = state.team.find(m => m.id === r.employeeId) || { name: 'Desconocido' };
-                const typeLabels = {
-                    vacation_summer: 'Vacaciones (Verano)',
-                    vacation_christmas: 'Vacaciones (Navidad)',
-                    vacation_easter: 'Vacaciones (Semana Santa)',
-                    vacation_other: 'Vacaciones (Asuntos P.)',
-                    sick_leave: 'Baja Médica',
-                    medical_hours: 'Ausencia Médica (Horas)',
-                    extra_hours: 'Horas Extra',
-                    extra_days: 'Días Extra'
-                };
-
-                const dateStr = r.type.includes('hours') 
-                    ? `${r.startDate} (${r.hours}h)`
-                    : `${r.startDate} al ${r.endDate}`;
+                const dateStr = r.type.includes('hours') ? `${r.startDate} (${r.hours}h)` : `${r.startDate} al ${r.endDate}`;
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="py-2 px-3 font-medium text-slate-800">${emp.name}</td>
-                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 border border-slate-200">${typeLabels[r.type] || r.type}</span></td>
+                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 border border-slate-200">${r.type}</span></td>
                         <td class="py-2 px-3">${dateStr}</td>
                         <td class="py-2 px-3 font-semibold text-emerald-700">${r.workingDays ? r.workingDays + ' d' : '-'}</td>
-                        <td class="py-2 px-3 text-slate-500 max-w-xs truncate">${r.notes || '-'}</td>
                         <td class="py-2 px-3 text-right">
                             <button onclick="deleteRecord('${r.id}')" class="text-rose-500 hover:text-rose-700 p-1">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -667,8 +565,6 @@
                     const name = emp ? emp.name.split(' ')[0] : 'Desconocido';
                     let badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
                     if (ev.type === 'sick_leave') badgeColor = "bg-rose-100 text-rose-800 border-rose-200";
-                    if (ev.type.includes('hours')) badgeColor = "bg-indigo-100 text-indigo-800 border-indigo-200";
-                    
                     return `<div class="truncate text-[9px] px-1 py-0.5 rounded border ${badgeColor} font-medium mt-0.5" title="${emp?.name}">${name}</div>`;
                 }).join('');
 
@@ -713,33 +609,12 @@
                     state.holidays.push(date);
                     saveState();
                 }
-            } else if (date) {
-                alert("Formato incorrecto. Usa AAAA-MM-DD");
             }
         }
 
         function removeHoliday(date) {
             state.holidays = state.holidays.filter(h => h !== date);
             saveState();
-        }
-
-        function openAddMemberModal() { document.getElementById('addMemberModal').classList.remove('hidden'); }
-        function closeAddMemberModal() { document.getElementById('addMemberModal').classList.add('hidden'); }
-
-        function saveNewMember(e) {
-            e.preventDefault();
-            const name = document.getElementById('memberName').value;
-            const days = parseInt(document.getElementById('memberDays').value) || 22;
-
-            state.team.push({
-                id: Date.now().toString(),
-                name,
-                annualDays: days
-            });
-
-            saveState();
-            closeAddMemberModal();
-            document.getElementById('memberName').value = '';
         }
 
         function exportData() {
@@ -759,9 +634,7 @@
                         state = importedState;
                         state.currentDate = new Date();
                         saveState();
-                        alert('Copia de seguridad cargada correctamente.');
-                    } else {
-                        alert('El archivo no contiene un formato de respaldo válido.');
+                        alert('Copia de seguridad cargada.');
                     }
                 } catch (err) {
                     alert('Error al leer el archivo JSON.');
